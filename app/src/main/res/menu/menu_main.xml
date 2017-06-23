@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <item
+        android:id="@+id/add_action"
+        android:title="Add"
+        app:showAsAction="always"
+        android:orderInCategory="100"
+        android:icon="@drawable/ic_add_circle"
+        />
+
+    <item
+        android:id = "@+id/edit_status_action"
+        android:title="Edit status"
+        android:orderInCategory="100"
+        />
+
+    <item
+        android:id="@+id/logout_action"
+        android:title="Logout"
+        android:orderInCategory="100"/>
+
+</menu>
