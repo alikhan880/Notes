@@ -17,6 +17,7 @@ import kz.kbtu.notes.Adapters.NotesAdapter;
 import kz.kbtu.notes.Interfaces.RecyclerItemClickListener;
 import kz.kbtu.notes.Note;
 import kz.kbtu.notes.R;
+import kz.kbtu.notes.User;
 
 public class MainActivity extends AppCompatActivity implements RecyclerItemClickListener {
 
@@ -24,6 +25,7 @@ public class MainActivity extends AppCompatActivity implements RecyclerItemClick
     private ArrayList<Note> notes;
     private NotesAdapter adapter;
     private RecyclerView recycler;
+    private User sessionUser;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -32,7 +34,8 @@ public class MainActivity extends AppCompatActivity implements RecyclerItemClick
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         toolbar.setTitle("Notes");
         setSupportActionBar(toolbar);
-
+        Intent intent = getIntent();
+        sessionUser = intent.getParcelableExtra("user");
     }
 
     @Override
@@ -50,10 +53,11 @@ public class MainActivity extends AppCompatActivity implements RecyclerItemClick
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
+        Intent intent;
         switch (item.getItemId()){
             case R.id.add_action:
                 Toast.makeText(this, "Add", Toast.LENGTH_SHORT).show();
-                Intent intent = new Intent(this, EditActivity.class);
+                intent = new Intent(this, EditActivity.class);
                 startActivityForResult(intent, REQUEST_CODE);
                 break;
             case R.id.logout_action:
@@ -61,7 +65,9 @@ public class MainActivity extends AppCompatActivity implements RecyclerItemClick
                 finish();
                 break;
             case R.id.edit_status_action:
-
+                intent = new Intent(this, StatusActivity.class);
+                intent.putExtra("user", sessionUser);
+                startActivity(intent);
                 break;
         }
         return true;
@@ -81,8 +87,15 @@ public class MainActivity extends AppCompatActivity implements RecyclerItemClick
         }
     }
 
+
     @Override
-    public void itemClicked() {
+    public void btnDeleteClicked(int adapterPosition) {
 
     }
+
+    @Override
+    public void itemClicked(int adapterPosition) {
+
+    }
+
 }

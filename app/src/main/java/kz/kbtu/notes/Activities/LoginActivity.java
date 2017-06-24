@@ -60,16 +60,18 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
         }
     }
 
-    private void signIn(User user){
+    private void signIn(final User user){
         AsyncTask<String, Void, Integer> task = new AsyncTask<String, Void, Integer>() {
 
-
+            String username;
+            String password;
+            User user;
             @Override
             protected Integer doInBackground(String... params) {
-                String username = params[0];
-                String password = params[1];
+                username = params[0];
+                password = params[1];
                 if(db.checkUserExist(username)){
-                    User user = db.getUser(username);
+                    user = db.getUser(username);
                     if(checkPassword(user.getPassword(), password)){
                         return 0;
                     }
@@ -93,6 +95,7 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
                 }
                 else{
                     Intent intent = new Intent(LoginActivity.this, MainActivity.class);
+                    intent.putExtra("user", user);
                     startActivity(intent);
                 }
             }

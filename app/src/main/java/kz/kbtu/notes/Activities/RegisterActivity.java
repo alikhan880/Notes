@@ -65,15 +65,23 @@ public class RegisterActivity extends AppCompatActivity implements View.OnClickL
 
     private void register(User user){
         AsyncTask<String, Void, Integer> task = new AsyncTask<String, Void, Integer>() {
-
+            User user;
             @Override
             protected Integer doInBackground(String... params) {
                 String username = params[0];
                 String password = params[1];
                 if(db.checkUserExist(username)){
+                    user = db.getUser(username);
                     return 200;
                 }
-                else return db.createUser(username, password) ? 1 : 0;
+                boolean check = db.createUser(username, password);
+                if(check){
+                    user = db.getUser(username);
+                    return 1;
+                }
+                else {
+                    return 0;
+                }
 
             }
 
@@ -88,6 +96,7 @@ public class RegisterActivity extends AppCompatActivity implements View.OnClickL
                 }
                 else{
                     Intent intent = new Intent(RegisterActivity.this, MainActivity.class);
+                    intent.putExtra("user", user);
                     startActivity(intent);
                 }
             }

@@ -39,6 +39,7 @@ public class Database extends SQLiteOpenHelper {
     private static final String TABLE_NAME_STATUS = "status_table";
     private static final String COL_STATUS_ID = "id";
     private static final String COL_STATUS_NAME = "name";
+    private static final String COL_STATUS_AUTHOR = "author";
     private static final String TAG = "DEBUG" ;
 
 
@@ -62,7 +63,8 @@ public class Database extends SQLiteOpenHelper {
 
         String createTableStatus = "create table " + TABLE_NAME_STATUS + "(" +
                 COL_STATUS_ID + " integer primary key autoincrement, " +
-                COL_STATUS_NAME + " text unique not null)";
+                COL_STATUS_NAME + " text unique not null, " +
+                COL_STATUS_AUTHOR + " integer not null)";
 
         db.execSQL(createTableUsers);
         db.execSQL(createTableNotes);
@@ -127,7 +129,52 @@ public class Database extends SQLiteOpenHelper {
                     cursor.getString(cursor.getColumnIndex(COL_NOTES_AUTHOR)),
                     cursor.getString(cursor.getColumnIndex(COL_NOTES_STATUS)),
                     cursor.getString(cursor.getColumnIndex(COL_NOTES_DATE))));
+            cursor.moveToNext();
         }
         return notes;
     }
+
+    public Boolean addStatus(Status status, User user){
+        SQLiteDatabase db = getWritableDatabase();
+        ContentValues content = new ContentValues();
+        content.put(COL_STATUS_NAME, status.getName());
+        content.put(COL_STATUS_AUTHOR, user.getId());
+        long res = db.insert(TABLE_NAME_STATUS, null, content);
+        return res != -1;
+    }
+
+    public ArrayList<Status> getAllStatuses(User user){
+        SQLiteDatabase db = getReadableDatabase();
+        ArrayList<Status> statuses = new ArrayList<>();
+        String cmd = "select * from "+ TABLE_NAME_STATUS + " where " + COL_STATUS_AUTHOR + " = cast(" + user.getId() + " as integer)";
+        Cursor cursor = db.rawQuery(cmd, null);
+        Log.d(TAG, cursor.getCount() + "");
+        cursor.moveToFirst();
+        for(int i = 0; i < cursor.getCount(); i++){
+            String id = cursor.getString(cursor.getColumnIndex(COL_STATUS_ID));
+            String text = cursor.getString(cursor.getColumnIndex(COL_STATUS_NAME));
+            String author = cursor.getString(cursor.getColumnIndex(COL_STATUS_AUTHOR));
+            statuses.add(new Status(id, text, author));
+            cursor.moveToNext();
+        }
+
+        return statuses;
+    }
+
+    public void deleteStatus(Status status){
+        SQLiteDatabase db = getWritableDatabase();
+        String cmd = "delete from " + TABLE_NAME_STATUS + " where " + COL_STATUS_ID + " = cast(" + status.getId() +
+                " as integer)";
+        db.execSQL(cmd);
+    }
+
+    public void updateStatus(Status status){
+        SQLiteDatabase db = getWritableDatabase();
+        String cmd = "update " + TABLE_NAME_STATUS + " set " +
+                COL_STATUS_NAME + " = '" + status.getName() +
+                "' where " + COL_STATUS_ID + " = cast(" + status.getId() + " as integer)";
+        db.execSQL(cmd);
+    }
+
+
 }

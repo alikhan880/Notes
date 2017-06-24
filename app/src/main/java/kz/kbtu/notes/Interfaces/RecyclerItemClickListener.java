@@ -6,6 +6,6 @@ package kz.kbtu.notes.Interfaces;
 
 public interface RecyclerItemClickListener {
 
-    void itemClicked();
-
+    void btnDeleteClicked(int adapterPosition);
+    void itemClicked(int adapterPosition);
 }
