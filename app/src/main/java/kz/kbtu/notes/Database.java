@@ -115,6 +115,17 @@ public class Database extends SQLiteOpenHelper {
                 cursor.getString(cursor.getColumnIndex(COL_USERS_PASSWORD)));
     }
 
+    public Boolean addNote(Note note){
+        SQLiteDatabase db = getWritableDatabase();
+        ContentValues content = new ContentValues();
+        content.put(COL_NOTES_TEXT, note.getText());
+        content.put(COL_NOTES_STATUS, note.getStatus());
+        content.put(COL_NOTES_DATE, note.getDate());
+        content.put(COL_NOTES_AUTHOR, note.getAuthor());
+        long res = db.insert(TABLE_NAME_NOTES, null, content);
+        return res != -1;
+    }
+
 
     public ArrayList<Note> getAllNotes(String id){
         ArrayList<Note> notes = new ArrayList<>();

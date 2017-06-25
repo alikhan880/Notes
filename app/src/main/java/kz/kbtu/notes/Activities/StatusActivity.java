@@ -24,6 +24,12 @@ import kz.kbtu.notes.R;
 import kz.kbtu.notes.Status;
 import kz.kbtu.notes.User;
 
+/*
+
+!NEED TO HANDLE NULL POINTER EXCEPTION FOR STATUS LIST
+
+ */
+
 public class StatusActivity extends AppCompatActivity implements
         RecyclerItemClickListener, AddStatusDialog.AddStatusDialogListener, EditStatusDialog.EditStatusDialogListener{
 
@@ -102,13 +108,15 @@ public class StatusActivity extends AppCompatActivity implements
             protected Void doInBackground(kz.kbtu.notes.Status... params) {
                 kz.kbtu.notes.Status status = params[0];
                 db.deleteStatus(status);
+                statuses.clear();
+                statuses.addAll(db.getAllStatuses(sessionUser));
                 return null;
             }
 
             @Override
             protected void onPostExecute(Void aVoid) {
                 super.onPostExecute(aVoid);
-                getStatuses();
+                adapter.notifyDataSetChanged();
             }
         };
         task.execute(adapter.getItem(adapterPosition));
@@ -160,13 +168,15 @@ public class StatusActivity extends AppCompatActivity implements
                     protected Void doInBackground(String... params) {
                         String text = params[0];
                         db.updateStatus(new kz.kbtu.notes.Status(last.getId(), text, last.getAuthor()));
+                        statuses.clear();
+                        statuses.addAll(db.getAllStatuses(sessionUser));
                         return null;
                     }
 
                     @Override
                     protected void onPostExecute(Void aVoid) {
                         super.onPostExecute(aVoid);
-                        getStatuses();
+                        adapter.notifyDataSetChanged();
                     }
                 };
                 task.execute(text);
