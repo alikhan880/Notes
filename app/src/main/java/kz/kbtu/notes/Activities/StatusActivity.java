@@ -2,20 +2,19 @@ package kz.kbtu.notes.Activities;
 
 import android.app.DialogFragment;
 import android.content.Intent;
+import android.database.sqlite.SQLiteConstraintException;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.widget.Toast;
 
-import java.util.ArrayList;
-
 import kz.kbtu.notes.Adapters.StatusAdapter;
+import kz.kbtu.notes.ArrayHolder;
 import kz.kbtu.notes.Database;
 import kz.kbtu.notes.Dialogs.AddStatusDialog;
 import kz.kbtu.notes.Dialogs.EditStatusDialog;
@@ -24,53 +23,49 @@ import kz.kbtu.notes.R;
 import kz.kbtu.notes.Status;
 import kz.kbtu.notes.User;
 
-/*
-
-!NEED TO HANDLE NULL POINTER EXCEPTION FOR STATUS LIST
-
- */
-
 public class StatusActivity extends AppCompatActivity implements
         RecyclerItemClickListener, AddStatusDialog.AddStatusDialogListener, EditStatusDialog.EditStatusDialogListener{
 
-    private ArrayList<Status> statuses;
     private RecyclerView recycler;
     private StatusAdapter adapter;
     private Database db;
     private User sessionUser;
     private Status last;
+    private ArrayHolder arrayHolder;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_status);
+        arrayHolder = ArrayHolder.getInstance();
+        db = new Database(this);
         Intent intent = getIntent();
         sessionUser = intent.getParcelableExtra("user");
-        adapter = new StatusAdapter(statuses, this);
-        db = new Database(this);
-        statuses = new ArrayList<>();
+        adapter = new StatusAdapter(arrayHolder.statuses, this);
         recycler = (RecyclerView)findViewById(R.id.recycler_status);
         recycler.setLayoutManager(new LinearLayoutManager(this));
+        recycler.setAdapter(adapter);
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-        getStatuses();
+        addCommonStatus();
     }
 
-    private void getStatuses(){
-        AsyncTask<Void, Void, Void> task = new AsyncTask<Void, Void, Void>() {
-            @Override
-            protected Void doInBackground(Void... params) {
-                statuses.clear();
-                statuses = db.getAllStatuses(sessionUser);
-                return null;
-            }
+    private void addCommonStatus(){
+        if(arrayHolder.statuses.isEmpty()){
+            AsyncTask<Void, Void, Void> task = new AsyncTask<Void, Void, Void>() {
+                @Override
+                protected Void doInBackground(Void... params) {
+                    db.addStatus(new kz.kbtu.notes.Status(null, "Common", sessionUser.getId()), sessionUser);
+                    arrayHolder.statuses.addAll(db.getAllStatuses(sessionUser));
+                    return null;
+                }
 
-            @Override
-            protected void onPostExecute(Void aVoid) {
-                super.onPostExecute(aVoid);
-                adapter = new StatusAdapter(statuses, StatusActivity.this);
-                recycler.setAdapter(adapter);
-            }
-        };
-        task.execute();
+                @Override
+                protected void onPostExecute(Void aVoid) {
+                    super.onPostExecute(aVoid);
+                    adapter.notifyDataSetChanged();
+                }
+            };
+            task.execute();
+        }
     }
 
     @Override
@@ -101,15 +96,14 @@ public class StatusActivity extends AppCompatActivity implements
 
     @Override
     public void btnDeleteClicked(int adapterPosition) {
-        Toast.makeText(this, "delete", Toast.LENGTH_SHORT).show();
         AsyncTask<Status, Void, Void> task = new AsyncTask<Status, Void, Void>() {
 
             @Override
             protected Void doInBackground(kz.kbtu.notes.Status... params) {
                 kz.kbtu.notes.Status status = params[0];
                 db.deleteStatus(status);
-                statuses.clear();
-                statuses.addAll(db.getAllStatuses(sessionUser));
+                arrayHolder.statuses.clear();
+                arrayHolder.statuses.addAll(db.getAllStatuses(sessionUser));
                 return null;
             }
 
@@ -117,6 +111,7 @@ public class StatusActivity extends AppCompatActivity implements
             protected void onPostExecute(Void aVoid) {
                 super.onPostExecute(aVoid);
                 adapter.notifyDataSetChanged();
+                addCommonStatus();
             }
         };
         task.execute(adapter.getItem(adapterPosition));
@@ -134,16 +129,29 @@ public class StatusActivity extends AppCompatActivity implements
     }
 
     @Override
+    public void itemLongClicked(int adapterPosition) {
+
+    }
+
+    @Override
     public void onPositiveClick(DialogFragment dialog, String text) {
-        Toast.makeText(this, "Positive Clicked " + dialog + text, Toast.LENGTH_SHORT).show();
-        Log.d("DEBUG", dialog.getTag());
         if(dialog.getTag().equals("Add")){
             if(!text.equals("")){
                 AsyncTask<String, Void, Boolean> task = new AsyncTask<String, Void, Boolean>() {
+                    boolean check = false;
+                    boolean cause = false;
                     @Override
                     protected Boolean doInBackground(String... params) {
                         String text = params[0];
-                        return db.addStatus(new kz.kbtu.notes.Status(null, text, sessionUser.getId()), sessionUser);
+                        try{
+                            check = db.addStatus(new kz.kbtu.notes.Status(null, text, sessionUser.getId()), sessionUser);
+                        }
+                        catch (SQLiteConstraintException e){
+                            cause = e.getMessage().contains("2067");
+                        }
+                        arrayHolder.statuses.clear();
+                        arrayHolder.statuses.addAll(db.getAllStatuses(sessionUser));
+                        return check;
                     }
 
                     @Override
@@ -153,9 +161,13 @@ public class StatusActivity extends AppCompatActivity implements
                             Toast.makeText(StatusActivity.this, "Added successfully", Toast.LENGTH_SHORT).show();
                         }
                         else{
-                            Toast.makeText(StatusActivity.this, "Failed to add", Toast.LENGTH_SHORT).show();
+                            if(cause){
+                                Toast.makeText(StatusActivity.this, "Status exists", Toast.LENGTH_SHORT).show();
+                            }else{
+                                Toast.makeText(StatusActivity.this, "Failed to add", Toast.LENGTH_SHORT).show();
+                            }
                         }
-                        getStatuses();
+                        adapter.notifyDataSetChanged();
                     }
                 };
                 task.execute(text);
@@ -168,8 +180,8 @@ public class StatusActivity extends AppCompatActivity implements
                     protected Void doInBackground(String... params) {
                         String text = params[0];
                         db.updateStatus(new kz.kbtu.notes.Status(last.getId(), text, last.getAuthor()));
-                        statuses.clear();
-                        statuses.addAll(db.getAllStatuses(sessionUser));
+                        arrayHolder.statuses.clear();
+                        arrayHolder.statuses.addAll(db.getAllStatuses(sessionUser));
                         return null;
                     }
 

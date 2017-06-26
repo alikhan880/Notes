@@ -30,8 +30,10 @@ public class Database extends SQLiteOpenHelper {
     private static final String TABLE_NAME_NOTES = "notes_table";
     private static final String COL_NOTES_ID = "id";
     private static final String COL_NOTES_TEXT = "text";
-    private static final String COL_NOTES_AUTHOR = "author";
-    private static final String COL_NOTES_STATUS = "status";
+    private static final String COL_NOTES_AUTHOR_ID = "author";
+    private static final String COL_NOTES_AUTHOR_NAME = "author_name";
+    private static final String COL_NOTES_STATUS_ID = "status_id";
+    private static final String COL_NOTES_STATUS_NAME = "status_name";
     private static final String COL_NOTES_DATE = "date";
 
 
@@ -57,8 +59,10 @@ public class Database extends SQLiteOpenHelper {
         String createTableNotes = "create table " + TABLE_NAME_NOTES + "(" +
                 COL_NOTES_ID + " integer primary key autoincrement, " +
                 COL_NOTES_TEXT + " text, " +
-                COL_NOTES_AUTHOR + " integer, " +
-                COL_NOTES_STATUS + " integer, " +
+                COL_NOTES_AUTHOR_ID + " integer, " +
+                COL_NOTES_AUTHOR_NAME + " text, " +
+                COL_NOTES_STATUS_ID + " integer, " +
+                COL_NOTES_STATUS_NAME + " text not null, " +
                 COL_NOTES_DATE + " datetime)";
 
         String createTableStatus = "create table " + TABLE_NAME_STATUS + "(" +
@@ -69,10 +73,6 @@ public class Database extends SQLiteOpenHelper {
         db.execSQL(createTableUsers);
         db.execSQL(createTableNotes);
         db.execSQL(createTableStatus);
-        Log.d(TAG, createTableUsers);
-        Log.d(TAG, createTableNotes);
-        Log.d(TAG, createTableStatus);
-
     }
 
     @Override
@@ -119,17 +119,26 @@ public class Database extends SQLiteOpenHelper {
         SQLiteDatabase db = getWritableDatabase();
         ContentValues content = new ContentValues();
         content.put(COL_NOTES_TEXT, note.getText());
-        content.put(COL_NOTES_STATUS, note.getStatus());
+        content.put(COL_NOTES_STATUS_ID, note.getStatus_id());
+        content.put(COL_NOTES_STATUS_NAME, note.getStatus_name());
         content.put(COL_NOTES_DATE, note.getDate());
-        content.put(COL_NOTES_AUTHOR, note.getAuthor());
+        content.put(COL_NOTES_AUTHOR_ID, note.getAuthor());
+        content.put(COL_NOTES_AUTHOR_NAME, note.getAuthor_name());
         long res = db.insert(TABLE_NAME_NOTES, null, content);
         return res != -1;
+    }
+
+    public void deleteNote(Note note){
+        SQLiteDatabase db = getWritableDatabase();
+        String cmd = "delete from " + TABLE_NAME_NOTES + " where " + COL_NOTES_ID + " = cast(" + note.getId() +
+                " as integer)";
+        db.execSQL(cmd);
     }
 
 
     public ArrayList<Note> getAllNotes(String id){
         ArrayList<Note> notes = new ArrayList<>();
-        String query = "select * from " + TABLE_NAME_NOTES + " where " + COL_NOTES_AUTHOR + " = CAST(" + id + " as integer)";
+        String query = "select * from " + TABLE_NAME_NOTES + " where " + COL_NOTES_AUTHOR_ID + " = cast(" + id + " as integer)";
         SQLiteDatabase db = getReadableDatabase();
         Cursor cursor = db.rawQuery(query, null);
         cursor.moveToFirst();
@@ -137,12 +146,25 @@ public class Database extends SQLiteOpenHelper {
             notes.add(new Note(
                     cursor.getString(cursor.getColumnIndex(COL_NOTES_ID)),
                     cursor.getString(cursor.getColumnIndex(COL_NOTES_TEXT)),
-                    cursor.getString(cursor.getColumnIndex(COL_NOTES_AUTHOR)),
-                    cursor.getString(cursor.getColumnIndex(COL_NOTES_STATUS)),
-                    cursor.getString(cursor.getColumnIndex(COL_NOTES_DATE))));
+                    cursor.getString(cursor.getColumnIndex(COL_NOTES_AUTHOR_ID)),
+                    cursor.getString(cursor.getColumnIndex(COL_NOTES_AUTHOR_NAME)),
+                    cursor.getString(cursor.getColumnIndex(COL_NOTES_STATUS_ID)),
+                    cursor.getString(cursor.getColumnIndex(COL_NOTES_STATUS_NAME)),
+                    cursor.getString(cursor.getColumnIndex(COL_NOTES_DATE))
+            ));
             cursor.moveToNext();
         }
         return notes;
+    }
+
+    public void updateNote(Note note){
+        SQLiteDatabase db = getWritableDatabase();
+        String cmd = "update " + TABLE_NAME_NOTES +
+                " set " + COL_NOTES_TEXT + " = '" + note.getText() + "', " +
+                COL_NOTES_STATUS_ID + " = cast(" + note.getStatus_id() + " as integer), " +
+                COL_NOTES_STATUS_NAME + " = '" + note.getStatus_name() + "', " +
+                COL_NOTES_DATE + " = '" + note.getDate() + "' where " + COL_NOTES_ID + " = cast(" + note.getId() + " as integer)";
+        db.execSQL(cmd);
     }
 
     public Boolean addStatus(Status status, User user){
@@ -150,7 +172,7 @@ public class Database extends SQLiteOpenHelper {
         ContentValues content = new ContentValues();
         content.put(COL_STATUS_NAME, status.getName());
         content.put(COL_STATUS_AUTHOR, user.getId());
-        long res = db.insert(TABLE_NAME_STATUS, null, content);
+        long res = db.insertOrThrow(TABLE_NAME_STATUS, null, content);
         return res != -1;
     }
 
@@ -159,7 +181,6 @@ public class Database extends SQLiteOpenHelper {
         ArrayList<Status> statuses = new ArrayList<>();
         String cmd = "select * from "+ TABLE_NAME_STATUS + " where " + COL_STATUS_AUTHOR + " = cast(" + user.getId() + " as integer)";
         Cursor cursor = db.rawQuery(cmd, null);
-        Log.d(TAG, cursor.getCount() + "");
         cursor.moveToFirst();
         for(int i = 0; i < cursor.getCount(); i++){
             String id = cursor.getString(cursor.getColumnIndex(COL_STATUS_ID));
@@ -186,6 +207,8 @@ public class Database extends SQLiteOpenHelper {
                 "' where " + COL_STATUS_ID + " = cast(" + status.getId() + " as integer)";
         db.execSQL(cmd);
     }
+
+
 
 
 }

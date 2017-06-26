@@ -1,7 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<android.support.v7.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
-    android:layout_height="wrap_content">
+    android:layout_height="wrap_content"
+    android:layout_margin="5dp">
 
     <LinearLayout
         android:orientation="horizontal"
@@ -14,15 +15,20 @@
             android:layout_height="match_parent"
             android:textAppearance="?android:textAppearanceMedium"
             android:text="Item text"
-            android:gravity="center_vertical"/>
+            android:textColor="@android:color/black"
+            android:gravity="center_vertical"
+            android:layout_marginLeft="10dp"
+            android:layout_marginStart="10dp"/>
 
         <Button
             android:id="@+id/item_status_delete_button"
             android:layout_width="0dp"
             android:layout_weight="1"
             android:layout_height="wrap_content"
-            android:text="Delete"/>
+            android:text="Delete"
+            android:gravity="center"
+            android:layout_gravity="center_vertical"/>
     </LinearLayout>
 
 
-</RelativeLayout>
+</android.support.v7.widget.CardView>

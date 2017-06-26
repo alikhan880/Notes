@@ -21,7 +21,6 @@ public class NotesAdapter extends RecyclerView.Adapter<NotesAdapter.NotesViewHol
     private ArrayList<Note> notes;
     private RecyclerItemClickListener listener;
 
-
     public NotesAdapter(ArrayList<Note> notes, RecyclerItemClickListener listener) {
         this.notes = notes;
         this.listener = listener;
@@ -43,7 +42,7 @@ public class NotesAdapter extends RecyclerView.Adapter<NotesAdapter.NotesViewHol
         Note note = notes.get(position);
         holder.tvText.setText(note.getText());
         holder.tvDate.setText(note.getDate());
-        holder.tvStatus.setText(note.getStatus());
+        holder.tvStatus.setText(note.getStatus_name());
     }
 
     @Override
@@ -51,7 +50,7 @@ public class NotesAdapter extends RecyclerView.Adapter<NotesAdapter.NotesViewHol
         return notes.size();
     }
 
-    public class NotesViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
+    public class NotesViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener, View.OnLongClickListener {
 
         TextView tvText;
         TextView tvDate;
@@ -63,14 +62,19 @@ public class NotesAdapter extends RecyclerView.Adapter<NotesAdapter.NotesViewHol
             tvDate = (TextView)itemView.findViewById(R.id.item_date);
             tvStatus = (TextView)itemView.findViewById(R.id.item_status);
 
-            tvText.setOnClickListener(this);
-            tvDate.setOnClickListener(this);
-            tvStatus.setOnClickListener(this);
+            itemView.setOnClickListener(this);
+            itemView.setOnLongClickListener(this);
         }
 
         @Override
         public void onClick(View v) {
             listener.itemClicked(getAdapterPosition());
+        }
+
+        @Override
+        public boolean onLongClick(View v) {
+            listener.itemLongClicked(getAdapterPosition());
+            return true;
         }
     }
 }
