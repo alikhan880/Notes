@@ -27,7 +27,9 @@
             android:layout_height="wrap_content"
             android:text="Delete"
             android:gravity="center"
-            android:layout_gravity="center_vertical"/>
+            android:layout_gravity="center_vertical"
+            style="@style/Button"
+            />
     </LinearLayout>
 
 

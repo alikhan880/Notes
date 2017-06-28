@@ -8,6 +8,7 @@ import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
@@ -36,6 +37,8 @@ public class StatusActivity extends AppCompatActivity implements
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_status);
+        Toolbar toolbar = (Toolbar)findViewById(R.id.toolbar);
+        setSupportActionBar(toolbar);
         arrayHolder = ArrayHolder.getInstance();
         db = new Database(this);
         Intent intent = getIntent();
@@ -44,7 +47,6 @@ public class StatusActivity extends AppCompatActivity implements
         recycler = (RecyclerView)findViewById(R.id.recycler_status);
         recycler.setLayoutManager(new LinearLayoutManager(this));
         recycler.setAdapter(adapter);
-        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         addCommonStatus();
     }
 
